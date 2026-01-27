@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-Native SDLC - Analyser</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'IBM Plex Sans', sans-serif; 
+      background: #f8f7f4; 
+      min-height: 100vh;
+      padding: 40px;
+    }
+    .app { max-width: 1600px; margin: 0 auto; }
+    .header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+    .title { font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; letter-spacing: -1px; }
+    .subtitle { color: #666; font-size: 14px; }
+    .legend { display: flex; gap: 20px; align-items: center; background: #fff; padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 16px; height: 16px; border-radius: 2px; }
+    .legend-established { background: #f2f1ed; border: 2px solid #d1cec7; }
+    .legend-ai {
+      background:
+        linear-gradient(#f4e6ff, #f4e6ff) padding-box,
+        linear-gradient(var(--angle), #02fcef 0, #ffb52b 50%, #a02bfe 100%) border-box;
+      border: 2px solid transparent;
+      animation: rotate 10s linear infinite;
+    }
+    @property --angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes rotate {
+      to { --angle: 360deg; }
+    }
+
+    .chart-wrap { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: auto; }
+    .diagram { position: relative; width: 1500px; height: 850px; }
+    .diagram svg { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; }
+    .arrow { stroke: #555; stroke-width: 2; fill: none; }
+    .arrow-dashed { stroke: #888; stroke-width: 2; stroke-dasharray: 8 4; fill: none; }
+    .arrowhead polygon { fill: #555; }
+    .arrowhead-dashed polygon { fill: #888; }
+    .svg-label { font-size: 11px; fill: #888; font-family: 'IBM Plex Sans', sans-serif; text-anchor: middle; }
+    .svg-title { font-size: 24px; font-weight: 700; font-family: 'IBM Plex Sans', sans-serif; fill: #e0e0e0; text-anchor: middle; }
+
+    .phase-box { position: absolute; width: 360px; height: 300px; border-radius: 12px; border: 2px solid #333; padding: 12px; display: flex; flex-direction: column; gap: 10px; z-index: 1; }
+    .phase-title { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+    .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .phase-tools { display: flex; gap: 6px; margin-top: auto; }
+    .phase-discovery { left: 50px; top: 70px; background: #e8f5e9; }
+    .phase-planning { left: 570px; top: 70px; background: #e3f2fd; }
+    .phase-build { left: 1090px; top: 70px; background: #fff3e0; }
+    .phase-measure { left: 50px; top: 480px; background: #e0f2f1; }
+    .phase-deploy { left: 570px; top: 480px; background: #fce4ec; }
+    .phase-verify { left: 1090px; top: 480px; background: #f3e5f5; }
+
+    .sticky { border: 2px solid; border-radius: 3px; padding: 6px 8px; font-size: 11px; font-family: 'IBM Plex Sans', sans-serif; color: #333; line-height: 1.2; width: 100%; }
+    .sticky.established { background: #f2f1ed; border-color: #d1cec7; }
+    .sticky.ai {
+      background:
+        linear-gradient(#f2f1ed, #f2f1ed) padding-box,
+        linear-gradient(var(--angle), #02fcef 0, #ffb52b 50%, #a02bfe 100%) border-box;
+      border: 2px solid transparent;
+      animation: rotate 10s linear infinite;
+    }
+    .tool-badge { width: 28px; height: 28px; background: #fff; border: 1px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    .tool-badge img { width: 20px; height: 20px; display: block; }
+
+    .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; font-size: 13px; }
+    .principle-card { background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .principle-title { font-weight: 700; }
+    .principle-desc { color: #666; }
+
+    .footer { margin-top: 24px; text-align: center; color: #999; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const App = () => {
+      const Sticky = ({ text, type = 'established' }) => {
+        const lines = text.split('\n');
+        return (
+          <div className={`sticky ${type}`}>
+            {lines.map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        );
+      };
+
+      const ToolBadge = ({ name }) => {
+        const logos = {
+          'Confluence': 'https://cdn.worldvectorlogo.com/logos/confluence-1.svg',
+          'Figma': 'https://cdn.worldvectorlogo.com/logos/figma-icon.svg',
+          'JIRA': 'https://cdn.worldvectorlogo.com/logos/jira-1.svg',
+          'Azure DevOps': 'https://oneplan.ai/wp-content/uploads/2019/07/azure-devops-svgrepo-com.svg',
+          'Amplitude': 'https://cdn.prod.website-files.com/64da81538e9bdebe7ae2fa11/64dbedc008270c0be55dc3dc_Favicon%20Marketo%20logo%2032x32.png',
+        };
+        return (
+          <div className="tool-badge">
+            <img src={logos[name]} alt={`${name} logo`} />
+          </div>
+        );
+      };
+
+      return (
+        <div className="app">
+          {/* Header */}
+          <div className="header">
+            <div>
+              <h1 className="title">AI-Native SDLC</h1>
+              <p className="subtitle">Analyser Project • Draft v0.3</p>
+            </div>
+            
+            {/* Legend */}
+            <div className="legend">
+              <div className="legend-item">
+                <div className="legend-swatch legend-established"></div>
+                <span>Established Practice</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-swatch legend-ai"></div>
+                <span>AI</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Flowchart */}
+          <div className="chart-wrap">
+            <div className="diagram">
+              <svg width="1500" height="850" viewBox="0 0 1500 850">
+              <defs>
+                <marker id="arrowhead" className="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+                <marker id="arrowhead-dashed" className="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+              </defs>
+              
+              {/* ========== ARROWS ========== */}
+              {/* Discovery → Planning */}
+              <line x1="410" y1="220" x2="570" y2="220" className="arrow" markerEnd="url(#arrowhead)" />
+              
+              {/* Planning → Build */}
+              <line x1="930" y1="220" x2="1090" y2="220" className="arrow" markerEnd="url(#arrowhead)" />
+
+              {/* Build → Planning (ambiguity loop) */}
+              <line x1="1090" y1="240" x2="930" y2="240" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="1010" y="260" className="svg-label">Ambiguity</text>
+              
+              {/* Build → Verify (down) */}
+              <path d="M 1270 370 L 1270 480" className="arrow" markerEnd="url(#arrowhead)" />
+              
+              {/* Verify → Deploy */}
+              <line x1="1090" y1="630" x2="930" y2="630" className="arrow" markerEnd="url(#arrowhead)" />
+              
+              {/* Verify → Build (feedback loop for fixes) */}
+              <path d="M 1320 480 L 1320 370" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="1336" y="425" className="svg-label">Fixes</text>
+              
+              {/* Deploy → Measure */}
+              <line x1="570" y1="630" x2="410" y2="630" className="arrow" markerEnd="url(#arrowhead)" />
+              
+              {/* Measure → Discovery (feedback loop) */}
+              <path d="M 50 630 L 20 630 L 20 220 L 50 220" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="10" y="425" className="svg-label" transform="rotate(-90, 10, 425)">Learnings feed back</text>
+
+              {/* Center label */}
+              <text x="750" y="425" className="svg-title">AI SDLC</text>
+              </svg>
+
+              <div className="phase-box phase-discovery">
+                <div className="phase-title">Discovery</div>
+                <div className="phase-grid">
+                  <Sticky text="Product test / validate new ideas" type="established" />
+                  <Sticky text="User interviews" type="established" />
+                  <Sticky text="Analyse Amplitude data" type="ai" />
+                  <Sticky text="Technical risks flagged" type="ai" />
+                  <Sticky text="Prototyping" type="ai" />
+                  <Sticky text="Market research" type="ai" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="Confluence" />
+                  <ToolBadge name="Figma" />
+                  <ToolBadge name="Amplitude" />
+                </div>
+              </div>
+
+              <div className="phase-box phase-planning">
+                <div className="phase-title">Planning</div>
+                <div className="phase-grid">
+                  <Sticky text="Validate requirements" type="ai" />
+                  <Sticky text="Break down work w/ sequences" type="ai" />
+                  <Sticky text="Estimate" type="ai" />
+                  <Sticky text="Write AC" type="ai" />
+                  <Sticky text="SPIKEs & ADRs" type="ai" />
+                  <Sticky text="NFRs captured" type="ai" />
+                  <Sticky text="Human iteration → DoR" type="established" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="JIRA" />
+                  <ToolBadge name="Confluence" />
+                  <ToolBadge name="Azure DevOps" />
+                  <ToolBadge name="Figma" />
+                </div>
+              </div>
+
+              <div className="phase-box phase-build">
+                <div className="phase-title">Build</div>
+                <div className="phase-grid">
+                  <Sticky text="Agent picks up" type="ai" />
+                  <Sticky text="Consumes planning artifacts" type="ai" />
+                  <Sticky text="Raises PR" type="ai" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="Azure DevOps" />
+                  <ToolBadge name="Figma" />
+                </div>
+              </div>
+
+              <div className="phase-box phase-measure">
+                <div className="phase-title">Measure</div>
+                <div className="phase-grid">
+                  <Sticky text="Analyse Amplitude data" type="ai" />
+                  <Sticky text="A/B testing" type="established" />
+                  <Sticky text="Roll out or iterate?" type="established" />
+                  <Sticky text="Cleanup (e.g remove FF)" type="ai" />
+                  <Sticky text="Capture learnings" type="ai" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="Amplitude" />
+                </div>
+              </div>
+
+              <div className="phase-box phase-deploy">
+                <div className="phase-title">Deploy</div>
+                <div className="phase-grid">
+                  <Sticky text="CI/CD pipeline runs" type="established" />
+                  <Sticky text="Ship behind FF" type="established" />
+                  <Sticky text="Self-healing" type="ai" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="Azure DevOps" />
+                  <ToolBadge name="Amplitude" />
+                </div>
+              </div>
+
+              <div className="phase-box phase-verify">
+                <div className="phase-title">Verify</div>
+                <div className="phase-grid">
+                  <Sticky text="First-pass review" type="ai" />
+                  <Sticky text="Engineer reviews PR" type="established" />
+                  <Sticky text="Automated quality gates" type="established" />
+                  <Sticky text="Automated tests" type="established" />
+                </div>
+                <div className="phase-tools">
+                  <ToolBadge name="Azure DevOps" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Principles - compact */}
+          <div className="principles">
+            <div className="principle-card">
+              <div className="principle-title">Humans own strategy</div>
+              <div className="principle-desc">What to build, why, when it's ready</div>
+            </div>
+            <div className="principle-card">
+              <div className="principle-title">AI owns execution</div>
+              <div className="principle-desc">Tickets, SPIKEs, ADRs, code, review</div>
+            </div>
+            <div className="principle-card">
+              <div className="principle-title">Small PRs, fast cycles</div>
+              <div className="principle-desc">One story per PR, ship behind FF</div>
+            </div>
+            <div className="principle-card">
+              <div className="principle-title">Quality is automated</div>
+              <div className="principle-desc">Gates, not human diligence</div>
+            </div>
+            <div className="principle-card">
+              <div className="principle-title">Iteration celebrated</div>
+              <div className="principle-desc">FF needs work? We learned!</div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="footer">Draft v0.3 • Feedback welcome</div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
