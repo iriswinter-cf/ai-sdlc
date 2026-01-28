@@ -41,30 +41,30 @@
     }
 
     .chart-wrap { background: #161b22; border-radius: 12px; padding: 24px; border: 1px solid #30363d; overflow: auto; }
-    .diagram { position: relative; width: 1500px; height: 850px; }
+    .diagram { position: relative; width: 1120px; height: 680px; }
     .diagram svg { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; }
     .arrow { stroke: #8b949e; stroke-width: 2; fill: none; }
     .arrow-dashed { stroke: #8b949e; stroke-width: 2; stroke-dasharray: 8 4; fill: none; opacity: 0.7; }
     .arrowhead polygon { fill: #8b949e; }
     .arrowhead-dashed polygon { fill: #8b949e; opacity: 0.7; }
-    .svg-label { font-size: 11px; fill: #8b949e; font-family: 'IBM Plex Sans', sans-serif; text-anchor: middle; }
+    .svg-label { font-size: 9px; fill: #8b949e; font-family: 'IBM Plex Sans', sans-serif; text-anchor: middle; }
     .svg-title { font-size: 24px; font-weight: 700; font-family: 'IBM Plex Sans', sans-serif; fill: #e6edf3; text-anchor: middle; }
 
-    .phase-box { position: absolute; width: 360px; height: 300px; border-radius: 12px; border: 1px solid #30363d; padding: 12px; display: flex; flex-direction: column; gap: 10px; z-index: 1; background: #21262d; }
-    .phase-title { font-size: 16px; font-weight: 700; color: #e6edf3; }
-    .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .phase-box { position: absolute; width: 270px; height: 260px; border-radius: 12px; border: 1px solid #30363d; padding: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 1; background: #21262d; }
+    .phase-title { font-size: 14px; font-weight: 700; color: #e6edf3; }
+    .phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .phase-tools { display: flex; gap: 6px; margin-top: auto; }
-    .phase-discovery { left: 50px; top: 70px; }
-    .phase-planning { left: 570px; top: 70px; }
-    .phase-build { left: 1090px; top: 70px; }
-    .phase-measure { left: 50px; top: 480px; }
-    .phase-deploy { left: 570px; top: 480px; }
-    .phase-verify { left: 1090px; top: 480px; }
+    .phase-discovery { left: 38px; top: 50px; }
+    .phase-planning { left: 425px; top: 50px; }
+    .phase-build { left: 812px; top: 50px; }
+    .phase-measure { left: 38px; top: 392px; }
+    .phase-deploy { left: 425px; top: 392px; }
+    .phase-verify { left: 812px; top: 392px; }
 
-    .sticky { border: 2px solid; border-radius: 8px; font-size: 15px; font-family: 'IBM Plex Sans', sans-serif; color: #e6edf3; line-height: 1.3; width: 100%; }
+    .sticky { border: 2px solid; border-radius: 8px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: #e6edf3; line-height: 1.3; width: 100%; }
     .sticky > div {
       height: 100%;
-      padding: 10px 8px;
+      padding: 8px 6px;
       background: #161b22;
       border-radius: 8px;
       border: 2px solid transparent;
@@ -91,8 +91,8 @@
       transition: 0.4s ease-out;
     }
     .sticky.ai:hover::after { transform: scale(1.1); }
-    .tool-badge { width: 28px; height: 28px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .tool-badge img { width: 20px; height: 20px; display: block; }
+    .tool-badge { width: 24px; height: 24px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .tool-badge img { width: 16px; height: 16px; display: block; }
 
     .principles-section { margin-top: 32px; }
     .principles-header { font-size: 20px; font-weight: 700; color: #e6edf3; margin-bottom: 16px; text-align: center; }
@@ -159,7 +159,7 @@
           {/* Main Flowchart */}
           <div className="chart-wrap">
             <div className="diagram">
-              <svg width="1500" height="850" viewBox="0 0 1500 850">
+              <svg width="1120" height="680" viewBox="0 0 1120 680">
               <defs>
                 <marker id="arrowhead" className="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
                   <polygon points="0 0, 10 3.5, 0 7" />
@@ -168,41 +168,41 @@
                   <polygon points="0 0, 10 3.5, 0 7" />
                 </marker>
               </defs>
-              
+
               {/* ========== ARROWS ========== */}
               {/* Discovery → Planning */}
-              <line x1="410" y1="220" x2="570" y2="220" className="arrow" markerEnd="url(#arrowhead)" />
-              
+              <line x1="308" y1="180" x2="425" y2="180" className="arrow" markerEnd="url(#arrowhead)" />
+
               {/* Planning → Build */}
-              <line x1="930" y1="220" x2="1090" y2="220" className="arrow" markerEnd="url(#arrowhead)" />
+              <line x1="695" y1="180" x2="812" y2="180" className="arrow" markerEnd="url(#arrowhead)" />
 
               {/* Build → Planning (ambiguity loop) */}
-              <line x1="1090" y1="240" x2="930" y2="240" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
-              <text x="1010" y="260" className="svg-label">Ambiguity</text>
-              
+              <line x1="812" y1="195" x2="695" y2="195" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="753" y="212" className="svg-label">Ambiguity</text>
+
               {/* Build → Verify (down) */}
-              <path d="M 1270 370 L 1270 480" className="arrow" markerEnd="url(#arrowhead)" />
-              
+              <path d="M 947 310 L 947 392" className="arrow" markerEnd="url(#arrowhead)" />
+
               {/* Verify → Deploy */}
-              <line x1="1090" y1="630" x2="930" y2="630" className="arrow" markerEnd="url(#arrowhead)" />
-              
+              <line x1="812" y1="522" x2="695" y2="522" className="arrow" markerEnd="url(#arrowhead)" />
+
               {/* Verify → Build (feedback loop for fixes) */}
-              <path d="M 1320 480 L 1320 370" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
-              <text x="1336" y="425" className="svg-label">Fixes</text>
-              
+              <path d="M 985 392 L 985 310" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="999" y="351" className="svg-label">Fixes</text>
+
               {/* Deploy → Measure */}
-              <line x1="570" y1="630" x2="410" y2="630" className="arrow" markerEnd="url(#arrowhead)" />
-              
+              <line x1="425" y1="522" x2="308" y2="522" className="arrow" markerEnd="url(#arrowhead)" />
+
               {/* Measure → Discovery (feedback loop) */}
-              <path d="M 50 630 L 20 630 L 20 220 L 50 220" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
-              <text x="10" y="425" className="svg-label" transform="rotate(-90, 10, 425)">Learnings feed back</text>
+              <path d="M 38 522 L 15 522 L 15 180 L 38 180" className="arrow-dashed" markerEnd="url(#arrowhead-dashed)" />
+              <text x="8" y="351" className="svg-label" transform="rotate(-90, 8, 351)">Learnings feed back</text>
 
               </svg>
 
               <div className="phase-box phase-discovery">
                 <div className="phase-title">Discovery</div>
                 <div className="phase-grid">
-                  <Sticky text="Product test / validate new ideas" type="established" />
+                  <Sticky text="Test & validate new ideas" type="established" />
                   <Sticky text="User interviews" type="established" />
                   <Sticky text="Analyse Amplitude data" type="ai" />
                   <Sticky text="Technical risks flagged" type="ai" />
@@ -302,8 +302,8 @@
                 <div className="principle-desc">Tickets, SPIKEs, ADRs, code, review</div>
               </div>
               <div className="principle-card">
-                <div className="principle-title">Small PRs, fast cycles</div>
-                <div className="principle-desc">One story per PR, ship behind FF</div>
+                <div className="principle-title">Fast cycles</div>
+                <div className="principle-desc">Ship earlier, behind FF</div>
               </div>
               <div className="principle-card">
                 <div className="principle-title">Quality is automated</div>
